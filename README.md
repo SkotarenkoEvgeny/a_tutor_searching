@@ -1,2 +1,2 @@
 # A tutor searching
-The serwice for tutor searching 
+The service for tutor searching 
