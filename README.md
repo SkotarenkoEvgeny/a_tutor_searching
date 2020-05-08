@@ -1,2 +1,2 @@
-# a_tutor_searching
-a serwice for tutor searching 
+# A tutor searching
+The serwice for tutor searching 
