@@ -3,7 +3,7 @@
   <main class="container mt-3">
     <div class="row mt-5">
       <div class="col-10 col-md-6 offset-1 offset-md-3 mb-3">
-        <form action="/booking_done/" method="POST" class="card mb-3">
+        <form action="/booking/{{ teacher_data.id }}/{{ week_day }}/{{ time }}/" method="POST" class="card mb-3">
           <div class="card-body text-center pt-5">
             <img src="{{teacher_data.picture}}" class="mb-3" width="95" alt="">
             <h2 class="h5 card-title mt-2 mb-2">{{teacher_data.name}}</h2>
@@ -16,18 +16,15 @@
             {{ form.time(type="hidden") }}
             {{ form.teacher(type="hidden") }}
             {{ form.csrf_token }}
-            {% if form.errors %}
-              <ul class="errors">
-                {% for field_name, field_errors in form.errors|dictsort if field_errors %}
-                  {% for error in field_errors %}
-                    <li>{{ form[field_name].label }}: {{ error }}</li>
-                  {% endfor %}
-                {% endfor %}
-              </ul>
-            {% endif %}
             {{ form.name.label(class="mb-1 mt-2") }}
+            {% for err in form.name.errors %}
+              <p class="error">{{ err }}</p>
+            {% endfor %}
             {{ form.name(class="form-control") }}
             {{ form.phone.label(class="mb-1 mt-2") }}
+            {% for err in form.phone.errors %}
+                <p class="error">{{ err }}</p>
+            {% endfor %}
             {{ form.phone(class="form-control") }}
 
             <input type="submit" class="btn btn-primary btn-block mt-4" value="Записаться на пробный урок">

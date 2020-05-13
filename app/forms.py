@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, RadioField
+from wtforms import StringField, RadioField, IntegerField
 from wtforms.validators import Length, Regexp
 
 from database.data_engine import goals, spend_time
@@ -9,7 +9,7 @@ class BookingForm(FlaskForm):
     time = StringField()
     teacher = IntegerField()
     name = StringField("Вас зовут", [Length(min=3)])
-    phone = IntegerField("Ваш телефон", [Regexp(r'\+[\d]{2}-[\d]{3}-[\d]{3}-[\d]{2}-[\d]{2}', message='Введите согласно шаблона +00-000-000-00-00')])
+    phone = StringField("Ваш телефон", [Regexp(r'\+[\d]{2}-[\d]{3}-[\d]{3}-[\d]{2}-[\d]{2}', message='Введите согласно шаблона +00-000-000-00-00')])
 
 class RequestForm(FlaskForm):
     goal_choices = [(key, value) for key, value in goals.items()]

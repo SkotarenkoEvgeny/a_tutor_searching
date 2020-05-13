@@ -24,44 +24,41 @@ def render_goal(goal):
     return render_template('goal.html', goal_to_read=goal_to_read, random_teacher_list=teacher_list)
 
 
-@app.route('/booking/<int:id_teacher>/<week_day>/<time>/')
+@app.route('/booking/<int:id_teacher>/<week_day>/<time>/', methods=["GET", "POST"])
 def render_booking(id_teacher, week_day, time):
-    print(request.args)
     teacher = Teacher(id_teacher)
     teacher_data = teacher.teacher_data_generator()
     form = BookingForm()
     form.weekday.data = week_day
     form.time.data = time
     form.teacher.data = id_teacher
-    if 'err' in request.args:
-        form.errors=request.args['err']
+    if form.validate_on_submit():
+
+        # teacher.teacher_change_schedule(id_teacher, week_day, time, form.name.data, form.phone.data)
+        data = {"id_teacher": id_teacher, "week_day": week_day, "time": time, "name": form.name.data,
+                "phone": form.phone.data}
+        DataBase.json_worker('request.json', data)
+        user_data = f'?id={id_teacher}&wd={week_day}&t={time}&n={form.name.data}&p={form.phone.data}'
+        print(user_data)
+        return redirect('/booking_done/'+user_data, code=302)
+    else:
         return render_template('booking.html', teacher_data=teacher_data, week_day=week_day, time=time, form=form)
-    return render_template('booking.html', teacher_data=teacher_data, week_day=week_day, time=time, form=form)
 
 
 
-@app.route('/booking_done/', methods=["POST"])
+@app.route('/booking_done/', methods=["GET"])
 def render_booking_done():
-    if request.method == 'POST':
-        form = BookingForm()
-        name = form.name.data
-        phone = form.phone.data
-        weekday = form.weekday.data
-        weekday_translate = days_translate[weekday]
-        time = form.time.data
-        teacher = form.teacher.data
-        raw_teacher = Teacher(teacher)
-        teacher_name = raw_teacher.teacher_data_generator()['name']
-        print(form.data)
-        if form.validate():
-            raw_teacher.teacher_change_schedule(teacher, weekday, time, name, phone)
-            return render_template('booking_done.html', name=name, phone=phone, weekday=weekday_translate, time=time,
+    name = request.args['n']
+    phone = request.args['p']
+    weekday = request.args['wd']
+    weekday_translate = days_translate[weekday]
+    time = request.args['t']
+    teacher = request.args['id']
+    raw_teacher = Teacher(int(teacher))
+    teacher_name = raw_teacher.teacher_data_generator()['name']
+
+    return render_template('booking_done.html', name=name, phone=phone, weekday=weekday_translate, time=time,
                                teacher=teacher_name)
-        else:
-            print(form.name.errors)
-            print(form.phone.errors)
-            print(form.errors)
-            return redirect(f'/booking/{teacher}/{weekday}/{time}/?err={form.errors}')
 
 
 @app.route('/profiles/<int:id_teacher>/')
