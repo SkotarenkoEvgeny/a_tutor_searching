@@ -1,8 +1,8 @@
 import random
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 
-from database.data_engine import Teacher, goals, DataBase, TeachersFilter, days_translate
+from database.data_engine import Teacher, goals, DataBase, TeachersFilter, days_translate, spend_time
 from forms import BookingForm, RequestForm
 
 app = Flask(__name__)
@@ -34,7 +34,8 @@ def render_booking(id_teacher, week_day, time):
     return render_template('booking.html', teacher_data=teacher_data, week_day=week_day, time=time, form=form)
 
 
-@app.route('/booking_done/', methods=["GET", "POST"])
+
+@app.route('/booking_done/', methods=["POST"])
 def render_booking_done():
     if request.method == 'POST':
         form = BookingForm()
@@ -47,8 +48,12 @@ def render_booking_done():
         raw_teacher = Teacher(teacher)
         teacher_name = raw_teacher.teacher_data_generator()['name']
         raw_teacher.teacher_change_schedule(teacher, weekday, time, name, phone)
-        return render_template('booking_done.html', name=name, phone=phone, weekday=weekday_translate, time=time,
+        print(form.data)
+        if form.validate():
+            return render_template('booking_done.html', name=name, phone=phone, weekday=weekday_translate, time=time,
                                teacher=teacher_name)
+        else:
+            return redirect(f'/booking/{teacher}/{weekday}/{time}/')
 
 
 @app.route('/profiles/<int:id_teacher>/')
@@ -65,9 +70,14 @@ def render_request():
     return render_template('request.html', form=form)
 
 
-@app.route('/request_done/')
+@app.route('/request_done/', methods=["POST"])
 def render_request_done():
-    return render_template('request_done.html')
+    form = RequestForm()
+    data = {"spend_time": form.spend_time.data, "goal": form.goal.data, "name": form.name.data, "phone": form.phone.data}
+    DataBase.json_worker('request.json', data)
+    data['goal'] = goals[form.goal.data]
+    data['spend_time'] = spend_time[form.goal.data]
+    return render_template('request_done.html', data=data)
 
 
 @app.route('/tutor_list/')

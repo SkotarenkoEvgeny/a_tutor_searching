@@ -1,15 +1,19 @@
-import json
+import json, os
 
 goals = {"travel": "Для путешествий", "study": "Для учебы", "work": "Для работы", "relocate": "Для переезда"}
 days_translate = {'mon': 'Понедельник', 'tue': 'Второник', 'wed': 'Среда', 'thu': 'Четверг', 'fri': 'Пятница',
                   'sat': 'Субота', 'sun': 'Воскресенье'}
-
+spend_time = {2:'1-2 часа', 5: '3-5 часов', 7: '5-7 часов', 10: '7-10 часов'}
+base_dir = '../app/database'
 
 class DataBase:
 
     def __init__(self):
         self.database = DataBase.read_db()
         self.teacher_quantity = [i.get('id') for i in self.database]
+
+    def check_file(self, file_name):
+        return os.path.exists(os.path.join(base_dir, file_name))
 
     @classmethod
     def read_db(cls):
@@ -22,6 +26,19 @@ class DataBase:
         with open('../app/database/database.json', 'w') as f:
             json.dump(data, f)
 
+    @staticmethod
+    def json_worker(file_name, new_data):
+        if os.path.exists(os.path.join(base_dir, file_name)):
+            with open(os.path.join(base_dir, file_name), 'r') as f:
+                data = json.load(f)
+            data.append(new_data)
+            with open(os.path.join(base_dir, file_name), 'w') as f:
+                json.dump(data, f)
+        else:
+            data = []
+            data.append(new_data)
+            with open(os.path.join(base_dir, file_name), 'w') as f:
+                json.dump(data, f)
 
 class Teacher(DataBase):
 
@@ -50,8 +67,7 @@ class Teacher(DataBase):
                 item['free'][weekday][time] = False
                 self.write_db(self.database)
                 data = {"teacher": teacher, "weekday": weekday, "time": time, "name": name, "phone": phone}
-                with open('../app/database/booking.json', 'a') as f:
-                    json.dump(data, f)
+                self.json_worker('booking.json', data)
 
 
 class TeachersFilter(DataBase):
