@@ -1,4 +1,5 @@
 import random
+import urllib.parse as urlparse
 
 from flask import Flask, render_template, request, redirect
 
@@ -23,14 +24,18 @@ def render_goal(goal):
     return render_template('goal.html', goal_to_read=goal_to_read, random_teacher_list=teacher_list)
 
 
-@app.route('/booking/<int:id_teacher>/<week_day>/<time>/', methods=["GET", "POST"])
+@app.route('/booking/<int:id_teacher>/<week_day>/<time>/')
 def render_booking(id_teacher, week_day, time):
+    print(request.args)
     teacher = Teacher(id_teacher)
     teacher_data = teacher.teacher_data_generator()
     form = BookingForm()
     form.weekday.data = week_day
     form.time.data = time
     form.teacher.data = id_teacher
+    if 'err' in request.args:
+        form.errors=request.args['err']
+        return render_template('booking.html', teacher_data=teacher_data, week_day=week_day, time=time, form=form)
     return render_template('booking.html', teacher_data=teacher_data, week_day=week_day, time=time, form=form)
 
 
@@ -47,13 +52,16 @@ def render_booking_done():
         teacher = form.teacher.data
         raw_teacher = Teacher(teacher)
         teacher_name = raw_teacher.teacher_data_generator()['name']
-        raw_teacher.teacher_change_schedule(teacher, weekday, time, name, phone)
         print(form.data)
         if form.validate():
+            raw_teacher.teacher_change_schedule(teacher, weekday, time, name, phone)
             return render_template('booking_done.html', name=name, phone=phone, weekday=weekday_translate, time=time,
                                teacher=teacher_name)
         else:
-            return redirect(f'/booking/{teacher}/{weekday}/{time}/')
+            print(form.name.errors)
+            print(form.phone.errors)
+            print(form.errors)
+            return redirect(f'/booking/{teacher}/{weekday}/{time}/?err={form.errors}')
 
 
 @app.route('/profiles/<int:id_teacher>/')
