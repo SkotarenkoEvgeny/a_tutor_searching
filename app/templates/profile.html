@@ -1,43 +1,45 @@
 {% extends "base.html" %}
 {% block content %}
-  <main class="container mt-3">
+<main class="container mt-3">
     <div class="card my-4 mx-auto">
-      <div class="card-body m-2 m-md-4">
-        <article class="row">
-          <div class="col-5"><img src="{{ teacher.picture }}" class="img-fluid" alt=""></div>
-          <div class="col-7">
+        <div class="card-body m-2 m-md-4">
+            <article class="row">
+                <div class="col-5"><img src="{{ teacher.picture }}" class="img-fluid" alt=""></div>
+                <div class="col-7">
 
-            <section class="teacher=info">
+                    <section class="teacher=info">
 
-              <h1 class="h2">{{ teacher.name }}</h1>
-              <p><span class="badge badge-secondary mr-2">{% for goal in teacher.goals %} {{goal[1]}}, {% endfor %}</span>Рейтинг: {{ teacher.rating }} Ставка:
-                {{ teacher.price }} / час</p>
-              <p>{{ teacher.about }}</p>
+                        <h1 class="h2">{{ teacher.name }}</h1>
+                        <p><span class="badge badge-secondary mr-2">{% for goal in teacher.goals %} {{goal[1]}}, {% endfor %}</span>Рейтинг:
+                            {{ teacher.rating }} Ставка:
+                            {{ teacher.price }} / час</p>
+                        <p>{{ teacher.about }}</p>
 
-            </section>
+                    </section>
 
-            <section class="available">
+                    <section class="available">
 
-              <h4 class="mb-4 mt-5">Записаться на пробный урок</h4>
+                        <h4 class="mb-4 mt-5">Записаться на пробный урок</h4>
 
-              {% for weak_day,time_list in teacher_schedule.items() %}
+                        {% for weak_day,time_list in teacher_schedule.items() %}
 
-              <h6 class="mt-4">{{weak_day}}</h6>
-              {% if time_list[0] == [] %}
-                <p>Нет свободных уроков</p>
-              {% else %}
-              {% for time in time_list[0] %}
-              <a href="/booking/{{teacher.id}}/{{time_list[1]}}/{{time}}/" class="btn btn-outline-success m-2">{{time}} свободно</a>
-              {% endfor %}
-              {% endif %}
-              {% endfor %}
+                        <h6 class="mt-4">{{weak_day}}</h6>
+                        {% if time_list[0] == [] %}
+                        <p>Нет свободных уроков</p>
+                        {% else %}
+                        {% for time in time_list[0] %}
+                        <a href="/booking/{{teacher.id}}/{{time_list[1]}}/{{time}}/"
+                           class="btn btn-outline-success m-2">{{time}} свободно</a>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
 
-            </section>
+                    </section>
 
-          </div>
-        </article>
-      </div>
+                </div>
+            </article>
+        </div>
 
     </div>
-  </main>
+</main>
 {% endblock %}}

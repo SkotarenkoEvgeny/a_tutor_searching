@@ -1,10 +1,12 @@
 import json, os
 
-goals = {"travel": ["Для путешествий", '⛱'], "study": ["Для учебы", '📖'], "work": ["Для работы", '🛠️'], "relocate": ["Для переезда", '🚜'], 'prog':['Для програмирования', '💻']}
+goals = {"travel": ["Для путешествий", '⛱'], "study": ["Для учебы", '📖'], "work": ["Для работы", '🛠️'],
+         "relocate": ["Для переезда", '🚜'], 'prog': ['Для програмирования', '💻']}
 days_translate = {'mon': 'Понедельник', 'tue': 'Второник', 'wed': 'Среда', 'thu': 'Четверг', 'fri': 'Пятница',
                   'sat': 'Субота', 'sun': 'Воскресенье'}
-spend_time = {2:'1-2 часа', 5: '3-5 часов', 7: '5-7 часов', 10: '7-10 часов'}
+spend_time = {2: '1-2 часа', 5: '3-5 часов', 7: '5-7 часов', 10: '7-10 часов'}
 base_dir = '../app/database'
+
 
 class DataBase:
 
@@ -19,7 +21,6 @@ class DataBase:
     def read_db(cls):
         with open('../app/database/database.json', 'r') as f:
             teachers = json.load(f)
-            print("database read")
         return teachers
 
     def write_db(self, data):
@@ -39,6 +40,7 @@ class DataBase:
             data.append(new_data)
             with open(os.path.join(base_dir, file_name), 'w') as f:
                 json.dump(data, f)
+
 
 class Teacher(DataBase):
 

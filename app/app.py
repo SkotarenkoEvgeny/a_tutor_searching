@@ -1,5 +1,5 @@
 import random
-import urllib.parse as urlparse
+
 
 from flask import Flask, render_template, request, redirect
 
@@ -34,15 +34,11 @@ def render_booking(id_teacher, week_day, time):
     form.teacher.data = id_teacher
     if form.validate_on_submit():
         teacher.teacher_change_schedule(id_teacher, week_day, time, form.name.data, form.phone.data)
-        # data = {"id_teacher": id_teacher, "week_day": week_day, "time": time, "name": form.name.data,
-        #         "phone": form.phone.data}
-        # DataBase.json_worker('request.json', data)
         user_data = f'?id={id_teacher}&wd={week_day}&t={time}&n={form.name.data}&p={form.phone.data}'
 
-        return redirect('/booking_done/'+user_data, code=302)
+        return redirect('/booking_done/' + user_data, code=302)
     else:
         return render_template('booking.html', teacher_data=teacher_data, week_day=week_day, time=time, form=form)
-
 
 
 @app.route('/booking_done/', methods=["GET"])
@@ -57,7 +53,7 @@ def render_booking_done():
     teacher_name = raw_teacher.teacher_data_generator()['name']
 
     return render_template('booking_done.html', name=name, phone=phone, weekday=weekday_translate, time=time,
-                               teacher=teacher_name)
+                           teacher=teacher_name)
 
 
 @app.route('/profiles/<int:id_teacher>/')
@@ -77,7 +73,8 @@ def render_request():
 @app.route('/request_done/', methods=["POST"])
 def render_request_done():
     form = RequestForm()
-    data = {"spend_time": form.spend_time.data, "goal": form.goal.data, "name": form.name.data, "phone": form.phone.data}
+    data = {"spend_time": form.spend_time.data, "goal": form.goal.data, "name": form.name.data,
+            "phone": form.phone.data}
     DataBase.json_worker('request.json', data)
     data['goal'] = goals[form.goal.data]
     print(spend_time)
@@ -92,4 +89,5 @@ def render_tutor_list():
     return render_template('tutor_list.html', random_teacher_list=teacher_list)
 
 
-app.run('0.0.0.0', 8000, debug=True)
+if __name__ == '__main__':
+    app.run()
