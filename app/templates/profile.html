@@ -10,7 +10,7 @@
             <section class="teacher=info">
 
               <h1 class="h2">{{ teacher.name }}</h1>
-              <p><span class="badge badge-secondary mr-2">{% for goal in teacher.goals %} {{goal}}, {% endfor %}</span>Рейтинг: {{ teacher.rating }} Ставка:
+              <p><span class="badge badge-secondary mr-2">{% for goal in teacher.goals %} {{goal[1]}}, {% endfor %}</span>Рейтинг: {{ teacher.rating }} Ставка:
                 {{ teacher.price }} / час</p>
               <p>{{ teacher.about }}</p>
 

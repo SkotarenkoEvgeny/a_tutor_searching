@@ -5,11 +5,11 @@
         <form action="/request_done/" method="POST" class="card mb-5">
             <div class="card-body text-center pt-5">
                 <h1 class="h3 card-title mt-4 mb-2">Подбор преподавателя</h1>
-                <p class="px-5">Напишите, чего вам нужно и&nbsp;мы&nbsp;подберем отличных&nbsp;ребят</p>
+                <p class="px-5">Напишите, чего вам нужно и мы подберем отличных ребят</p>
             </div>
             <hr>
-            <div class="card-body mx-3">
-                <div class="row mx-3">
+            <div class="card-body mx-3 my-5">
+                <div class="row">
                     <div class="col">
                         {{ form.csrf_token }}
                         {{ form.goal.label(class="form-check-label", style="list-style:none") }}
@@ -23,13 +23,14 @@
             </div>
 
             <div class="card-body mx-3 mt-5 pt-5">
-<hr>
+                <hr>
                 {{ form.name.label(class="mb-1 mt-2") }}
                 {{ form.name(class="form-control") }}
                 {{ form.phone.label(class="mb-1 mt-2") }}
                 {{ form.phone(class="form-control") }}
-                <input type="submit" class="btn btn-primary mt-4 mb-2" value="Найдите мне преподавателя">
+            <input type="submit" class="btn btn-primary mt-4 mb-2" value="Найдите мне преподавателя">
             </div>
+
         </form>
     </div>
 </main>

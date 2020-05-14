@@ -33,13 +33,12 @@ def render_booking(id_teacher, week_day, time):
     form.time.data = time
     form.teacher.data = id_teacher
     if form.validate_on_submit():
-
-        # teacher.teacher_change_schedule(id_teacher, week_day, time, form.name.data, form.phone.data)
-        data = {"id_teacher": id_teacher, "week_day": week_day, "time": time, "name": form.name.data,
-                "phone": form.phone.data}
-        DataBase.json_worker('request.json', data)
+        teacher.teacher_change_schedule(id_teacher, week_day, time, form.name.data, form.phone.data)
+        # data = {"id_teacher": id_teacher, "week_day": week_day, "time": time, "name": form.name.data,
+        #         "phone": form.phone.data}
+        # DataBase.json_worker('request.json', data)
         user_data = f'?id={id_teacher}&wd={week_day}&t={time}&n={form.name.data}&p={form.phone.data}'
-        print(user_data)
+
         return redirect('/booking_done/'+user_data, code=302)
     else:
         return render_template('booking.html', teacher_data=teacher_data, week_day=week_day, time=time, form=form)
@@ -81,7 +80,9 @@ def render_request_done():
     data = {"spend_time": form.spend_time.data, "goal": form.goal.data, "name": form.name.data, "phone": form.phone.data}
     DataBase.json_worker('request.json', data)
     data['goal'] = goals[form.goal.data]
-    data['spend_time'] = spend_time[form.goal.data]
+    print(spend_time)
+    print(form.spend_time.data)
+    data['spend_time'] = spend_time[int(form.spend_time.data)]
     return render_template('request_done.html', data=data)
 
 
