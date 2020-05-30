@@ -2,8 +2,10 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, RadioField, IntegerField
 from wtforms.validators import Length, Regexp
 
-from database.data_engine import goals, spend_time
 
+goals = {"travel": ["Для путешествий", '⛱'], "study": ["Для учебы", '📖'], "work": ["Для работы", '🛠️'],
+         "relocate": ["Для переезда", '🚜'], 'prog': ['Для програмирования', '💻']}
+spend_time = {2: '1-2 часа', 5: '3-5 часов', 7: '5-7 часов', 10: '7-10 часов'}
 
 class BookingForm(FlaskForm):
     weekday = StringField()

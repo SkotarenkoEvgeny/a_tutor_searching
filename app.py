@@ -2,11 +2,7 @@ import random
 
 
 from flask import Flask, render_template, request, redirect
-from flask_sqlalchemy import SQLAlchemy
 
-
-from database.data import goals, teachers
-# from database.data_engine import Teacher, goals, DataBase, TeachersFilter, days_translate, spend_time
 from database.models import db, Teacher, Goal, Schedule, Booking, data_preparing, day_reverse
 from forms import BookingForm, RequestForm
 
@@ -58,7 +54,7 @@ db.init_app(app)
 @app.route('/')
 def render_main():
     random_teacher_list = random.choices(db.session.query(Teacher).all(), k=3)
-    return render_template('index.html', random_teacher_list=random_teacher_list, goals=goals)
+    return render_template('index.html', random_teacher_list=random_teacher_list, goals=Goal.query.all())
 
 
 @app.route('/goals/<goal>/')
@@ -130,7 +126,7 @@ def render_request_done():
     data['spend_time'] = spend_time[int(form.spend_time.data)]
     return render_template('request_done.html', data=data)
 
-
+# complete
 @app.route('/tutor_list/')
 def render_tutor_list():
     teacher_list = Teacher.query.all()

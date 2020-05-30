@@ -2,6 +2,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+days_translate = {'mon': 'Понедельник', 'tue': 'Второник', 'wed': 'Среда', 'thu': 'Четверг', 'fri': 'Пятница',
+                  'sat': 'Субота', 'sun': 'Воскресенье'}
+
 teachers_goals_association = db.Table('teachers_goals',
                                       db.Column('teachers_id', db.Integer, db.ForeignKey('teachers.id')),
                                       db.Column('goal_id', db.String, db.ForeignKey('goals.id')))
@@ -38,11 +41,6 @@ class Schedule(db.Model):
     time = db.Column(db.String)
 
 
-    # def __repr__(self):
-    #     print(self.list)
-    #     return self.list
-
-
 class Booking(db.Model):
     __tablename__ = 'bookings'
 
@@ -54,9 +52,14 @@ class Booking(db.Model):
     phone = db.Column(db.String)
 
 
-days_translate = {'mon': 'Понедельник', 'tue': 'Второник', 'wed': 'Среда', 'thu': 'Четверг', 'fri': 'Пятница',
-                  'sat': 'Субота', 'sun': 'Воскресенье'}
+class GoalsReqoest(db.Model):
+    __tablename__ = 'bookings'
 
+    id = db.Column(db.Integer, primary_key=True)
+    goal = db.Column(db.String)
+    time = db.Column(db.Integer)
+    name = db.Column(db.String)
+    phone = db.Column(db.String)
 
 
 def data_preparing(query_list):
@@ -81,14 +84,4 @@ def day_reverse(day):
 
     for key, value in days_translate.items():
         if day == value:
-            return key
-
-def time_reverse(time):
-    """
-    :param day: day about russian
-    :return: day for DB
-    """
-
-    for key, value in time_template.items():
-        if time == value:
             return key
