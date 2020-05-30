@@ -1,5 +1,5 @@
 import random
-from datetime import datetime
+
 
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
@@ -7,51 +7,52 @@ from flask_sqlalchemy import SQLAlchemy
 
 from database.data import goals, teachers
 # from database.data_engine import Teacher, goals, DataBase, TeachersFilter, days_translate, spend_time
-from database.models import Teacher, Goal, Schedule, Booking, data_preparing, day_reverse, time_reverse, time_template
+from database.models import db, Teacher, Goal, Schedule, Booking, data_preparing, day_reverse
 from forms import BookingForm, RequestForm
 
 app = Flask(__name__)
 app.secret_key = 'super'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tutor-db.db'
-db = SQLAlchemy(app)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
 
 
 
 # models
 
-with app.app_context():
-    db.create_all()
-
-
-for key, value in goals.items():
-    goal = Goal(id=key, translate_name=value[0], emoji=value[1])
-    db.session.add(goal)
-
-for item in teachers:
-    teacher = Teacher(
-        id=item['id'],
-        name=item['name'],
-        about=item['about'],
-        rating=item['rating'],
-        picture=item['picture'],
-        price=item['price'])
-
-    for goal in item['goals']:
-        raw_goal = Goal.query.get(goal)
-        teacher.goals.append(raw_goal)
-
-    for key, value  in item['free'].items():
-
-        for key_time, value_time in value:
-            if value_time == True:
-                day = Schedule(
-                    weekday=key,
-                    id_teacher=item['id'],
-                    time=datetime.strptime(key_time, '%H:%M')
-                )
-                db.session.add(day)
-
-db.session.commit()
+# with app.app_context():
+#     db.create_all()
+#
+#     for key, value in goals.items():
+#         goal = Goal(id=key, translate_name=value[0], emoji=value[1])
+#         db.session.add(goal)
+#
+#     for item in teachers:
+#         teacher = Teacher(
+#             id=item['id'],
+#             name=item['name'],
+#             about=item['about'],
+#             rating=item['rating'],
+#             picture=item['picture'],
+#             price=item['price'])
+#
+#         for goal in item['goals']:
+#             raw_goal = Goal.query.get(goal)
+#             teacher.goals.append(raw_goal)
+#
+#         for key, value  in item['free'].items():
+#
+#             for key_time, value_time in value.items():
+#                 if value_time == True:
+#                     day = Schedule(
+#                         weekday=key,
+#                         id_teacher=item['id'],
+#                         time=key_time
+#                     )
+#                     db.session.add(day)
+#
+#     db.session.commit()
 
 # complete
 @app.route('/')
@@ -62,11 +63,11 @@ def render_main():
 
 @app.route('/goals/<goal>/')
 def render_goal(goal):
-    goal_to_read = goals[goal]
-    teacher_list = TeachersFilter().specific_teachers(goal)
-    return render_template('goal.html', goal_to_read=goal_to_read, random_teacher_list=teacher_list)
+    goal_to_read = Goal.query.get(goal)
+    teacher_list = Teacher.query.filter(Goal.id == goal)
+    return render_template('goal.html', goal=goal_to_read.translate_name, goal_emoji=goal_to_read.emoji, random_teacher_list=teacher_list)
 
-
+# complete
 @app.route('/booking/<int:id_teacher>/<week_day>/<time>/', methods=["GET", "POST"])
 def render_booking(id_teacher, week_day, time):
     print(id_teacher, week_day, time)
@@ -75,45 +76,32 @@ def render_booking(id_teacher, week_day, time):
     form.weekday.data = week_day
     form.time.data = time
     form.teacher.data = id_teacher
-
-
-    reverse_time = time_reverse(time)
-    edited_schedule = Schedule.query.filter(db.and_(Schedule.id_teacher == id_teacher, Schedule.weekday == day_reverse(week_day), Schedule.__dict__[reverse_time])).first()
-    # print(edited_schedule.__dict__[reverse_time])
-    # print('walue', edited_schedule)
-    # edited_schedule.__dict__[reverse_time] = False
-    # current_db_sessions = db.session.object_session(edited_schedule)
-    # current_db_sessions.add(edited_schedule)
-    # db.session.commit()
-    # print(edited_schedule.__dict__[reverse_time])
-    # print(edited_schedule[reverse_time])
-
+    edited_schedule = Schedule.query.filter(db.and_(Schedule.id_teacher == id_teacher, Schedule.weekday == day_reverse(week_day), Schedule.time == time)).first()
 
     if form.validate_on_submit():
-        reverse_time = time_reverse(time)
         reverse_day = day_reverse(week_day)
-
-        teacher.teacher_change_schedule(id_teacher, week_day, time, form.name.data, form.phone.data)
-        user_data = f'?id={id_teacher}&wd={week_day}&t={time}&n={form.name.data}&p={form.phone.data}'
-
+        # current_db_sessions = db.session.object_session(edited_schedule)
+        # db.session.delete(edited_schedule)
+        db.session.commit()
+        user_data = f'?id={id_teacher}&wd={reverse_day}&t={time}&n={form.name.data}&p={form.phone.data}'
         return redirect('/booking_done/' + user_data, code=302)
     else:
         return render_template('booking.html', teacher_data=teacher, week_day=week_day, time=time, form=form)
 
-
+# complete
 @app.route('/booking_done/', methods=["GET"])
 def render_booking_done():
     name = request.args['n']
     phone = request.args['p']
     weekday = request.args['wd']
-    weekday_translate = days_translate[weekday]
     time = request.args['t']
-    teacher = request.args['id']
-    raw_teacher = Teacher(int(teacher))
-    teacher_name = raw_teacher.teacher_data_generator()['name']
-
-    return render_template('booking_done.html', name=name, phone=phone, weekday=weekday_translate, time=time,
-                           teacher=teacher_name)
+    teacher_id = request.args['id']
+    raw_teacher = Teacher.query.get(teacher_id)
+    booking = Booking(id_teacher = teacher_id,   weekday = weekday, time = time, name = name, phone = phone)
+    db.session.add(booking)
+    db.session.commit()
+    return render_template('booking_done.html', name=name, phone=phone, weekday=day_reverse(weekday), time=time,
+                           teacher=raw_teacher.name)
 
 # complete
 @app.route('/profiles/<int:id_teacher>/')
@@ -145,7 +133,7 @@ def render_request_done():
 
 @app.route('/tutor_list/')
 def render_tutor_list():
-    teacher_list = TeachersFilter().all_teachers()
+    teacher_list = Teacher.query.all()
     return render_template('tutor_list.html', random_teacher_list=teacher_list)
 
 

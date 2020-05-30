@@ -35,7 +35,7 @@ class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_teacher = db.Column(db.Integer, db.ForeignKey("teachers.id"))
     weekday = db.Column(db.String)
-    time = db.Column(db.Time)
+    time = db.Column(db.String)
 
 
     # def __repr__(self):
@@ -57,7 +57,6 @@ class Booking(db.Model):
 days_translate = {'mon': 'Понедельник', 'tue': 'Второник', 'wed': 'Среда', 'thu': 'Четверг', 'fri': 'Пятница',
                   'sat': 'Субота', 'sun': 'Воскресенье'}
 
-time_template = {'8:00': 8, '10:00': 10, '12:00': 12, '14:00': 14, '16:00': 16, '18:00': 18, '20:00': 20}
 
 
 def data_preparing(query_list):
@@ -65,18 +64,12 @@ def data_preparing(query_list):
     :param query_list: [<Teacher 5>]
     :return: {'Понедельник': ['16:00', '20:00', '18:00'], 'Второник': ['16:00', '20:00', '18:00']}
     """
-
     schedule = {}
     for item in query_list:
-        raw_dict = item.__dict__
-        day = days_translate[raw_dict['weekday']]
-        temp_list = []
-        for i in raw_dict.keys():
-            temp_data = time_template.get(i, None)
-            if temp_data is not None:
-                if raw_dict[i] != False:
-                    temp_list.append(time_template[i])
-        schedule[day] = temp_list
+        if schedule.get(days_translate[item.weekday], None) is None:
+            schedule[days_translate[item.weekday]] = [item.time]
+        else:
+            schedule[days_translate[item.weekday]].append(item.time)
     return schedule
 
 
