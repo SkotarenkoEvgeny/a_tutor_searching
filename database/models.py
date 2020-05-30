@@ -52,8 +52,8 @@ class Booking(db.Model):
     phone = db.Column(db.String)
 
 
-class GoalsReqoest(db.Model):
-    __tablename__ = 'bookings'
+class GoalsRequest(db.Model):
+    __tablename__ = 'goals-request'
 
     id = db.Column(db.Integer, primary_key=True)
     goal = db.Column(db.String)
