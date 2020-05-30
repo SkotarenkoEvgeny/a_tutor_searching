@@ -10,7 +10,7 @@
                     <section class="teacher=info">
 
                         <h1 class="h2">{{ teacher.name }}</h1>
-                        <p><span class="badge badge-secondary mr-2">{% for goal in teacher.goals %} {{goal[1]}}, {% endfor %}</span>Рейтинг:
+                        <p><span class="badge badge-secondary mr-2">{% for goal in teacher.goals %} {{goal.emoji}}, {% endfor %}</span>Рейтинг:
                             {{ teacher.rating }} Ставка:
                             {{ teacher.price }} / час</p>
                         <p>{{ teacher.about }}</p>
@@ -24,11 +24,11 @@
                         {% for weak_day,time_list in teacher_schedule.items() %}
 
                         <h6 class="mt-4">{{weak_day}}</h6>
-                        {% if time_list[0] == [] %}
+                        {% if time_list == [] %}
                         <p>Нет свободных уроков</p>
                         {% else %}
-                        {% for time in time_list[0] %}
-                        <a href="/booking/{{teacher.id}}/{{time_list[1]}}/{{time}}/"
+                        {% for time in time_list %}
+                        <a href="/booking/{{teacher.id}}/{{weak_day}}/{{time}}/"
                            class="btn btn-outline-success m-2">{{time}} свободно</a>
                         {% endfor %}
                         {% endif %}

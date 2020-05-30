@@ -1,19 +1,62 @@
 import random
-
+from datetime import datetime
 
 from flask import Flask, render_template, request, redirect
+from flask_sqlalchemy import SQLAlchemy
 
-from database.data_engine import Teacher, goals, DataBase, TeachersFilter, days_translate, spend_time
+
+from database.data import goals, teachers
+# from database.data_engine import Teacher, goals, DataBase, TeachersFilter, days_translate, spend_time
+from database.models import Teacher, Goal, Schedule, Booking, data_preparing, day_reverse, time_reverse, time_template
 from forms import BookingForm, RequestForm
 
 app = Flask(__name__)
 app.secret_key = 'super'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tutor-db.db'
+db = SQLAlchemy(app)
 
 
+
+# models
+
+with app.app_context():
+    db.create_all()
+
+
+for key, value in goals.items():
+    goal = Goal(id=key, translate_name=value[0], emoji=value[1])
+    db.session.add(goal)
+
+for item in teachers:
+    teacher = Teacher(
+        id=item['id'],
+        name=item['name'],
+        about=item['about'],
+        rating=item['rating'],
+        picture=item['picture'],
+        price=item['price'])
+
+    for goal in item['goals']:
+        raw_goal = Goal.query.get(goal)
+        teacher.goals.append(raw_goal)
+
+    for key, value  in item['free'].items():
+
+        for key_time, value_time in value:
+            if value_time == True:
+                day = Schedule(
+                    weekday=key,
+                    id_teacher=item['id'],
+                    time=datetime.strptime(key_time, '%H:%M')
+                )
+                db.session.add(day)
+
+db.session.commit()
+
+# complete
 @app.route('/')
 def render_main():
-    teacher_quantity = len(DataBase().teacher_quantity)
-    random_teacher_list = [Teacher(i).teacher_data_generator() for i in random.sample(range(teacher_quantity - 1), 3)]
+    random_teacher_list = random.choices(db.session.query(Teacher).all(), k=3)
     return render_template('index.html', random_teacher_list=random_teacher_list, goals=goals)
 
 
@@ -26,19 +69,36 @@ def render_goal(goal):
 
 @app.route('/booking/<int:id_teacher>/<week_day>/<time>/', methods=["GET", "POST"])
 def render_booking(id_teacher, week_day, time):
-    teacher = Teacher(id_teacher)
-    teacher_data = teacher.teacher_data_generator()
+    print(id_teacher, week_day, time)
+    teacher = Teacher.query.get(id_teacher)
     form = BookingForm()
     form.weekday.data = week_day
     form.time.data = time
     form.teacher.data = id_teacher
+
+
+    reverse_time = time_reverse(time)
+    edited_schedule = Schedule.query.filter(db.and_(Schedule.id_teacher == id_teacher, Schedule.weekday == day_reverse(week_day), Schedule.__dict__[reverse_time])).first()
+    # print(edited_schedule.__dict__[reverse_time])
+    # print('walue', edited_schedule)
+    # edited_schedule.__dict__[reverse_time] = False
+    # current_db_sessions = db.session.object_session(edited_schedule)
+    # current_db_sessions.add(edited_schedule)
+    # db.session.commit()
+    # print(edited_schedule.__dict__[reverse_time])
+    # print(edited_schedule[reverse_time])
+
+
     if form.validate_on_submit():
+        reverse_time = time_reverse(time)
+        reverse_day = day_reverse(week_day)
+
         teacher.teacher_change_schedule(id_teacher, week_day, time, form.name.data, form.phone.data)
         user_data = f'?id={id_teacher}&wd={week_day}&t={time}&n={form.name.data}&p={form.phone.data}'
 
         return redirect('/booking_done/' + user_data, code=302)
     else:
-        return render_template('booking.html', teacher_data=teacher_data, week_day=week_day, time=time, form=form)
+        return render_template('booking.html', teacher_data=teacher, week_day=week_day, time=time, form=form)
 
 
 @app.route('/booking_done/', methods=["GET"])
@@ -55,13 +115,13 @@ def render_booking_done():
     return render_template('booking_done.html', name=name, phone=phone, weekday=weekday_translate, time=time,
                            teacher=teacher_name)
 
-
+# complete
 @app.route('/profiles/<int:id_teacher>/')
 def render_profile(id_teacher):
-    teacher = Teacher(id_teacher)
-    teacher_data = teacher.teacher_data_generator()
-    teacher_schedule = teacher.teacher_schedule_generator()
+    teacher_data = db.session.query(Teacher).get(id_teacher)
+    teacher_schedule = data_preparing(Schedule.query.filter_by(id_teacher=id_teacher).all())
     return render_template('profile.html', teacher=teacher_data, teacher_schedule=teacher_schedule)
+
 
 
 @app.route('/request/')
