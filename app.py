@@ -1,6 +1,6 @@
 import random
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, abort
 from flask_migrate import Migrate
 
 from database.models import db, Teacher, Goal, Schedule, Booking, GoalsRequest, data_preparing, day_reverse
@@ -23,7 +23,7 @@ def render_main():
 @app.route('/goals/<goal>/')
 def render_goal(goal):
     goal_to_read = Goal.query.get(goal)
-    teacher_list = Teacher.query.filter(Goal.id == goal)
+    teacher_list = Teacher.query.join(Teacher.goals).filter(Goal.id == goal).all()
     return render_template('goal.html', goal=goal_to_read.translate_name, goal_emoji=goal_to_read.emoji,
                            random_teacher_list=teacher_list)
 
@@ -68,6 +68,9 @@ def render_booking_done():
 @app.route('/profiles/<int:id_teacher>/')
 def render_profile(id_teacher):
     teacher_data = db.session.query(Teacher).get(id_teacher)
+    print(teacher_data)
+    if teacher_data is None:
+        abort(404)
     teacher_schedule = data_preparing(Schedule.query.filter_by(id_teacher=id_teacher).all())
     return render_template('profile.html', teacher=teacher_data, teacher_schedule=teacher_schedule)
 
@@ -97,6 +100,10 @@ def render_tutor_list():
     teacher_list = Teacher.query.all()
     return render_template('tutor_list.html', random_teacher_list=teacher_list)
 
+
+@app.errorhandler(404)
+def render_server_error(error):
+    return render_template("404.html"), 404
 
 if __name__ == '__main__':
     app.run()
